@@ -1,0 +1,8 @@
+# Tested-compatible versions for Python 3.11–3.12; avoids Starlette TemplateResponse API drift.
+fastapi==0.115.12
+starlette==0.46.2
+uvicorn[standard]==0.34.2
+httpx==0.28.1
+jinja2==3.1.6
+python-multipart==0.0.20
+reportlab==4.4.9

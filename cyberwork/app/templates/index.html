@@ -1,0 +1,238 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>CyberShield AI — Defensive Security</title>
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body data-page="{{ active_page|default('dashboard') }}">
+<div class="app-shell">
+  <aside class="sidebar">
+    <div class="brand"><div class="brand-mark">CS</div><div><strong>CyberShield AI</strong><small>Defensive Security</small></div></div>
+    <nav>
+      <a class="nav-item {{ 'active' if active_page == 'dashboard' else '' }}" href="/">◈ Overview</a>
+      <a class="nav-item {{ 'active' if active_page == 'scanner' else '' }}" href="/scanner">⌕ Website scanner</a>
+      <a class="nav-item {{ 'active' if active_page == 'phishing' else '' }}" href="/phishing">⚑ Threat analysis</a>
+      <a class="nav-item {{ 'active' if active_page == 'osint' else '' }}" href="/osint">◎ Public DNS OSINT</a>
+      <a class="nav-item {{ 'active' if active_page == 'assistant' else '' }}" href="/assistant">✦ Security assistant</a>
+      <a class="nav-item {{ 'active' if active_page == 'history' else '' }}" href="/history">▤ Scan history</a>
+      <a class="nav-item {{ 'active' if active_page == 'network-tools' else '' }}" href="/network-tools">⌁ Network tools</a>
+      <a class="nav-item {{ 'active' if active_page == 'attack-lab' else '' }}" href="/attack-lab">⚗ Attack lab</a>
+      <a class="nav-item {{ 'active' if active_page == 'device-protection' else '' }}" href="/device-protection">🛡 Device protection</a>
+    </nav>
+    <div class="sidebar-note"><span class="status-dot"></span> Local defensive workspace <p>Only test websites you own or have permission to assess.</p></div>
+  </aside>
+  <main class="main">
+    <header class="topbar"><div><p class="eyebrow">SECURITY OPERATIONS / PERSONAL WORKSPACE</p><h1>Security overview</h1></div><div class="top-pill"><span class="status-dot"></span> MVP online</div></header>
+    <section id="overview" class="hero card">
+      <div><p class="eyebrow">CYBERSHIELD AI</p><h2>See risks. Understand evidence.<br><span>Improve your defenses.</span></h2><p class="muted">A defensive toolkit for passive website checks, phishing awareness, public DNS lookup, and practical remediation guidance.</p><a class="button primary" href="/scanner">Start a passive scan <span>→</span></a></div>
+      <div class="hero-art" aria-hidden="true"><div class="orbit orbit-one"></div><div class="orbit orbit-two"></div><div class="shield">✓</div><div class="mini-chip chip-a">HTTPS</div><div class="mini-chip chip-b">HEADERS</div><div class="mini-chip chip-c">DEFENSE</div></div>
+    </section>
+    <section class="stats-grid">
+      <div class="stat card"><span class="stat-label">Saved scans</span><strong id="stat-total">{{ history|length }}</strong><small>Stored locally in SQLite</small></div>
+      <div class="stat card"><span class="stat-label">Critical findings</span><strong id="stat-critical">—</strong><small>From latest scan</small></div>
+      <div class="stat card"><span class="stat-label">High findings</span><strong id="stat-high">—</strong><small>From latest scan</small></div>
+      <div class="stat card"><span class="stat-label">Medium findings</span><strong id="stat-medium">—</strong><small>From latest scan</small></div>
+    </section>
+    <section class="visual-grid" aria-label="Security analytics">
+      <div class="card visual-card">
+        <div class="section-heading"><div><p class="eyebrow">LIVE ANALYTICS</p><h2>Latest scan severity</h2></div><span class="tag" id="chart-state">Waiting for scan</span></div>
+        <div class="chart-wrap"><canvas id="severity-chart" width="320" height="220" aria-label="Severity distribution chart"></canvas><div class="chart-legend" id="severity-legend"><span><i class="legend-dot critical"></i>Critical <b>0</b></span><span><i class="legend-dot high"></i>High <b>0</b></span><span><i class="legend-dot medium"></i>Medium <b>0</b></span><span><i class="legend-dot low"></i>Low <b>0</b></span><span><i class="legend-dot info"></i>Info <b>0</b></span></div></div>
+      </div>
+      <div class="card visual-card">
+        <div class="section-heading"><div><p class="eyebrow">WORKSPACE STATUS</p><h2>System pulse</h2></div><span class="live-badge"><i></i> LOCAL</span></div>
+        <div class="pulse-list"><div><span>Dashboard</span><strong><i class="pulse-dot"></i> Ready</strong></div><div><span>Scan engine</span><strong><i class="pulse-dot"></i> Passive mode</strong></div><div><span>History database</span><strong><i class="pulse-dot"></i> Local SQLite</strong></div><div><span>Local time</span><strong id="local-clock">--:--:--</strong></div></div>
+        <p class="chart-footnote">Charts update when a scan completes. Findings are observations, not proof that a site is vulnerable.</p>
+      </div>
+    </section>
+    <section id="scanner" class="section-grid">
+      <div class="card section-card">
+        <div class="section-heading"><div><p class="eyebrow">01 / WEBSITE</p><h2>Passive configuration scan</h2></div><span class="tag">Low impact</span></div>
+        <p class="muted">Runs bounded, read-only checks for HTTPS/TLS, security headers, observed cookies, redirects and selected exposure indicators. The report also lists application-level modules that need authenticated staging tests or configuration review.</p>
+        <form id="scan-form">
+          <label for="target">Target website</label><input id="target" name="target" type="text" placeholder="https://example.com" required>
+          <label for="scan-mode">Assessment mode</label>
+          <select id="scan-mode" name="mode"><option value="passive">Passive checks (default)</option><option value="authorized">Authorized scoped passive checks (allowlisted targets only)</option></select>
+          <div id="scope-confirmation-wrap" hidden><label for="scope-confirmation">Written authorization confirmation</label><input id="scope-confirmation" type="text" placeholder="I_HAVE_WRITTEN_AUTHORIZATION" autocomplete="off"><p class="form-note">This mode only runs scoped, non-destructive passive checks and requires the hostname to be configured in CYBERSHIELD_AUTHORIZED_HOSTS.</p></div>
+          <label class="check-row"><input type="checkbox" id="authorized" name="authorized" required><span>I own this target or have explicit permission to assess it.</span></label>
+          <button class="button primary" type="submit" id="scan-button">Run security checks <span>→</span></button>
+          <p class="form-note">Only public HTTP/HTTPS targets on common web ports. Do not expose this development app publicly.</p>
+        </form>
+        <div id="scan-status" class="status-message" role="status"></div>
+      </div>
+      <div class="card section-card result-card">
+        <div class="section-heading"><div><p class="eyebrow">LATEST RESULT</p><h2>Findings snapshot</h2></div><span id="result-status" class="tag">Awaiting scan</span></div>
+        <div id="result-empty" class="empty-state"><div class="empty-icon">⌁</div><strong>No scan results yet</strong><p>Run a permitted passive scan to view findings here.</p></div>
+        <div id="result-content" hidden>
+          <div class="result-meta"><strong id="result-target"></strong><span id="result-code"></span></div>
+          <div class="result-counts" id="result-counts"></div>
+          <div id="findings-list" class="findings-list"></div>
+          <div class="section-heading"><h3>Application-level test coverage</h3><span class="tag">Honest status</span></div>
+          <p class="form-note">“Manual/staging required” means the scanner did not test that vulnerability; it does not mean the target is safe.</p>
+          <div id="application-test-coverage" class="findings-list"></div>
+          <button id="export-latest" class="button secondary" type="button">Export latest JSON</button>
+          <button id="export-latest-pdf" class="button secondary" type="button">Export latest PDF</button>
+        </div>
+      </div>
+    </section>
+    <section id="vulnerability-intelligence" class="section-grid">
+      <div class="card section-card">
+        <div class="section-heading"><div><p class="eyebrow">VULNERABILITY INTELLIGENCE</p><h2>Vulnerability catalog</h2></div><span class="tag">Taxonomy</span></div>
+        <p class="muted">Browse the included vulnerability types and see which checks are implemented. A catalog entry does not mean it was tested on a target.</p>
+        <div class="form-row"><label for="catalog-search">Filter vulnerability names</label><input id="catalog-search" placeholder="e.g. SQL injection, XSS, CORS"></div>
+        <button class="button secondary" type="button" id="load-catalog">Load catalog</button>
+        <div id="catalog-summary" class="analysis-output"></div>
+        <div id="catalog-output" class="analysis-output"></div>
+      </div>
+      <div class="card section-card">
+        <div class="section-heading"><div><p class="eyebrow">PUBLIC CVE DATABASE</p><h2>CVE lookup</h2></div><span class="tag">NIST NVD</span></div>
+        <p class="muted">Look up a public CVE record. This retrieves vulnerability intelligence only; it does not test your website or prove that a target is affected.</p>
+        <form id="cve-form"><label for="cve-input">CVE identifier</label><input id="cve-input" placeholder="CVE-2024-12345" pattern="CVE-[0-9]{4}-[0-9]{4,}" required><button class="button primary" type="submit">Look up CVE</button></form>
+        <div id="cve-output" class="analysis-output" aria-live="polite"></div>
+      </div>
+    </section>
+    <section id="analysis" class="section-grid">
+      <div id="url-checker-card" class="card section-card">
+        <div class="section-heading"><div><p class="eyebrow">02 / AWARENESS</p><h2>Suspicious URL checker</h2></div><span class="tag">Heuristics</span></div>
+        <p class="muted">Looks for common warning signs without visiting the submitted URL.</p>
+        <form id="url-form"><label for="url-input">URL or domain</label><input id="url-input" placeholder="https://example.com/login" required><button class="button primary" type="submit">Analyze URL</button></form>
+        <div id="url-output" class="analysis-output" aria-live="polite"></div>
+      </div>
+      <div id="message-checker-card" class="card section-card">
+        <div class="section-heading"><div><p class="eyebrow">03 / MESSAGES</p><h2>Phishing message detector</h2></div><span class="tag">Text only</span></div>
+        <p class="muted">Highlights urgency, credential requests, money lures, and links. Do not paste passwords or private information.</p>
+        <form id="message-form"><label for="message-input">Paste suspicious message</label><textarea id="message-input" rows="4" placeholder="Paste message text here…" required></textarea><button class="button primary" type="submit">Analyze message</button></form>
+        <div id="message-output" class="analysis-output" aria-live="polite"></div>
+      </div>
+    </section>
+    <section id="osint" class="section-grid">
+      <div class="card section-card">
+        <div class="section-heading"><div><p class="eyebrow">04 / OSINT</p><h2>Public DNS lookup</h2></div><span class="tag">Passive</span></div>
+        <p class="muted">Resolve a public domain to IP addresses. No port scanning, personal-data collection, or subdomain enumeration.</p>
+        <form id="osint-form"><label for="domain-input">Domain name</label><input id="domain-input" placeholder="example.com" required><button class="button primary" type="submit">Look up DNS</button></form>
+        <div id="osint-output" class="analysis-output" aria-live="polite"></div>
+      </div>
+      <div id="assistant" class="card section-card">
+        <div class="section-heading"><div><p class="eyebrow">05 / PERSONAL AI</p><h2>CyberShield AI Assistant</h2></div><span class="tag" id="assistant-provider">Checking AI…</span></div>
+        <p class="muted">Ask questions about your project, coding, security findings, Windows setup, or networking. Hybrid mode tries Gemini cloud AI when configured, then local Ollama, then a built-in fallback.</p>
+        <div class="finding"><div class="finding-top"><span class="severity info">APPROVED ACTIONS</span><h4>Tools you can run by chat</h4></div><p>Try <code>ping 192.168.1.1</code>, <code>ports 192.168.1.1</code>, or <code>wifi scan</code>. Network commands are limited to private/local systems. The assistant cannot run arbitrary shell commands or perform attacks.</p></div>
+        <form id="assistant-form"><label for="question-input">Message your assistant</label><textarea id="question-input" rows="4" placeholder="Explain my latest scan results, or type: ping 192.168.1.1" required></textarea><button class="button primary" type="submit">Send message ↗</button></form>
+        <p class="form-note">Cloud AI needs a Gemini API key. Local AI needs Ollama installed and a model downloaded. Do not paste passwords, API keys, OTPs, or private tokens.</p>
+        <div id="assistant-output" class="analysis-output" aria-live="polite"></div>
+      </div>
+    </section>
+    <section id="history" class="card section-card history-card">
+      <div class="section-heading"><div><p class="eyebrow">LOCAL DATABASE</p><h2>Recent scan history</h2></div><button id="refresh-history" class="button secondary" type="button">Refresh</button></div>
+      <div class="table-wrap"><table><thead><tr><th>Target</th><th>Time (UTC)</th><th>HTTP</th><th>Duration</th><th>Medium</th><th>High</th><th>Action</th></tr></thead><tbody id="history-body">
+      {% for item in history %}
+      <tr><td class="target-cell">{{ item.target }}</td><td>{{ item.created_at[:19].replace('T', ' ') }}</td><td>{{ item.status_code or '—' }}</td><td>{{ item.duration_ms or '—' }} ms</td><td>{{ item.counts.get('Medium', 0) }}</td><td>{{ item.counts.get('High', 0) }}</td><td><button class="text-button" data-load="{{ item.id }}">View</button> <a class="text-button" href="/api/scans/{{ item.id }}/export">JSON</a> <a class="text-button" href="/api/scans/{{ item.id }}/report.pdf">PDF</a></td></tr>
+      {% else %}<tr><td colspan="7" class="table-empty">No scans saved yet.</td></tr>{% endfor %}
+      </tbody></table></div>
+    </section>
+    <section id="device-protection" class="card section-card">
+      <div class="section-heading"><div><p class="eyebrow">LOCAL WINDOWS MONITOR</p><h2>Device protection & alerts</h2></div><span class="tag" id="device-monitor-status">Checking…</span></div>
+      <p class="muted">Read-only checks of Microsoft Defender status and recent Defender detections. Keep Windows Security enabled; this page is an extra visibility layer, not a replacement antivirus.</p>
+      <div class="stats-grid device-stats"><div class="stat card"><span class="stat-label">Antivirus</span><strong id="device-av">—</strong><small>Microsoft Defender</small></div><div class="stat card"><span class="stat-label">Real-time protection</span><strong id="device-rt">—</strong><small>Current status</small></div><div class="stat card"><span class="stat-label">Threat alerts</span><strong id="device-alert-count">—</strong><small>Recent recorded events</small></div></div>
+      <div class="section-heading device-actions"><h3>Recent alerts</h3><div><button class="button secondary" id="enable-notifications" type="button">Enable browser notifications</button> <button class="button primary" id="refresh-device" type="button">Refresh now</button></div></div>
+      <p class="form-note">Browser notifications work only while this app is open and notification permission is granted. For alerts when the app is closed, Windows Security notifications must remain enabled in Windows.</p>
+      <div id="device-alerts" class="findings-list" aria-live="polite"><div class="empty-state">Loading device status…</div></div>
+      <p class="form-note" id="device-last-check"></p>
+    </section>
+    <section id="network-tools" class="card section-card">
+      <div class="section-heading"><div><p class="eyebrow">LOCAL NETWORK / DEFENSIVE UTILITIES</p><h2>Network tools</h2></div><span class="tag">Low impact</span></div>
+      <p class="muted">These tools are restricted to private/local IP addresses. Use only on your own device or network. No passwords are collected.</p>
+      <div class="section-grid">
+        <div class="card section-card"><h3>Ping a local host</h3><form id="local-ping-form"><label for="ping-host">Private IP address</label><input id="ping-host" placeholder="192.168.1.1" required><button class="button primary" type="submit">Run ping</button></form><pre id="local-ping-output" class="analysis-output" aria-live="polite"></pre></div>
+        <div class="card section-card"><h3>Open-port exposure check</h3><p class="muted">Checks a fixed set of 15 common ports on one private IP. Not a full network sweep.</p><form id="local-ports-form"><label for="ports-host">Private IP address</label><input id="ports-host" placeholder="192.168.1.1" required><button class="button primary" type="submit">Check ports</button></form><div id="local-ports-output" class="analysis-output" aria-live="polite"></div></div>
+        <div class="card section-card"><h3>Nearby Wi-Fi inventory</h3><p class="muted">Windows 10/11 only. Reads nearby SSIDs and signal details using Windows netsh; never reads saved passwords.</p><button class="button primary" id="wifi-scan-button" type="button">Scan nearby Wi-Fi</button><pre id="wifi-scan-output" class="analysis-output" aria-live="polite"></pre></div>
+      </div>
+      <div class="finding"><div class="finding-top"><span class="severity medium">NOT INCLUDED</span><h4>Offensive or privacy-invasive tools</h4></div><p>DoS/DDoS generators, brute-force login attempts, fake/evil-twin Wi-Fi creation, phone-number crawling, covert camera hunting, and unbounded fuzzing are intentionally not included. For authorized web testing, use a lab target and a defined scope.</p></div>
+    </section>
+    <section id="attack-lab" class="card section-card" hidden>
+      <div class="section-heading"><div><p class="eyebrow">ISOLATED TRAINING / DEFENSIVE VALIDATION</p><h2>Attack & defense lab</h2></div><span class="tag">Simulation only</span></div>
+      <p class="muted">Run safe, local simulations that explain how to verify defenses. These demos do not send attack traffic to the target website, attempt real logins, exploit systems, or generate denial-of-service traffic.</p>
+      <div class="section-grid">
+        <div class="card section-card"><h3>Choose a simulation</h3><form id="lab-form">
+          <label for="lab-scenario">Scenario</label><select id="lab-scenario" required>
+            <option value="rate_limit">Login rate-limit / brute-force defense</option><option value="dos_resilience">DoS resilience and request-budget controls</option><option value="xss_encoding">XSS output-encoding validation</option><option value="csrf">CSRF protection checklist</option><option value="ssrf">SSRF URL-validation defenses</option><option value="authorization">Authorization / IDOR boundary checks</option><option value="upload">File-upload validation</option><option value="session">Session and cookie security</option><option value="injection">Injection-safe input handling</option><option value="race_condition">Race-condition defense with synthetic records</option>
+          </select>
+          <label for="lab-context">Optional lab notes</label><textarea id="lab-context" rows="3" maxlength="500" placeholder="e.g. local training app, test account names (no passwords)"></textarea>
+          <button class="button primary" type="submit" id="lab-run">Run safe simulation</button><p class="form-note">Simulation output is educational, not a claim that a real website passed or failed.</p>
+        </form></div>
+        <div class="card section-card"><h3>Simulation result</h3><div id="lab-output" class="analysis-output" aria-live="polite"><div class="empty-state"><strong>No simulation run</strong><p>Select a scenario to view the safe test plan and defensive checks.</p></div></div></div>
+      </div>
+      <div class="finding"><div class="finding-top"><span class="severity info">SCOPE GUARD</span><h4>Live-target attack execution is disabled</h4></div><p>Real exploit validation must be separately scoped and non-destructive. High-impact attack classes such as DDoS, credential attacks, destructive payloads, and arbitrary command execution are represented by defensive checks or isolated simulations only.</p></div>
+    </section>
+    <footer>CyberShield AI · Defensive learning MVP · Use only with authorization · <a href="/health" target="_blank" rel="noreferrer">Health check</a></footer>
+  </main>
+</div>
+<script>
+(() => {
+  const page = document.body.dataset.page || 'dashboard';
+  const sections = [...document.querySelectorAll('main > section')];
+  sections.forEach(section => { section.hidden = true; });
+  const show = (...ids) => ids.forEach(id => { const el = document.getElementById(id); if (el) el.hidden = false; });
+  if (page === 'dashboard') show('overview', 'scanner', 'analysis', 'osint', 'history');
+  if (page === 'dashboard') {
+    document.querySelectorAll('#scanner, #analysis, #osint, #history').forEach(el => el.hidden = true);
+    const visual = document.querySelector('.visual-grid'); if (visual) visual.hidden = false;
+    const stats = document.querySelector('.stats-grid'); if (stats) stats.hidden = false;
+  }
+  if (page === 'scanner') show('scanner');
+  if (page === 'phishing' || page === 'url-checker' || page === 'message-checker') {
+    show('analysis');
+    const section = document.getElementById('analysis');
+    if (section) {
+      section.classList.add('single-tool-page');
+      const urlCard = document.getElementById('url-checker-card');
+      const msgCard = document.getElementById('message-checker-card');
+      if (page === 'url-checker') { if (msgCard) msgCard.hidden = true; }
+      else if (page === 'message-checker') { if (urlCard) urlCard.hidden = true; }
+    }
+  }
+  if (page === 'osint') { show('osint'); const a = document.getElementById('assistant'); if (a) a.hidden = true; }
+  if (page === 'assistant') { show('osint'); const os = document.querySelector('#osint > .section-card'); if (os) os.hidden = true; }
+  if (page === 'history') show('history');
+  if (page === 'device-protection') show('device-protection');
+  if (page === 'network-tools') show('network-tools');
+  if (page === 'attack-lab') show('attack-lab');
+  if (page === 'attack-lab') show('attack-lab');
+  const hero = document.getElementById('overview');
+  if (page !== 'dashboard' && hero) hero.hidden = true;
+  if (page !== 'dashboard') { const stats = document.querySelector('.stats-grid'); if (stats) stats.hidden = true; const visual = document.querySelector('.visual-grid'); if (visual) visual.hidden = true; }
+  const titles = {dashboard:'Security overview',scanner:'Website security scanner',phishing:'Phishing detector', 'url-checker':'Suspicious URL analysis','message-checker':'Phishing message analysis',osint:'Public DNS / OSINT',assistant:'AI security assistant',history:'Scan history & reports','device-protection':'Device protection & alerts','network-tools':'Network tools','attack-lab':'Attack & defense lab'};
+  const h = document.querySelector('.topbar h1'); if (h) h.textContent = titles[page] || titles.dashboard;
+
+  if (page === 'network-tools') {
+    const safe = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+    document.getElementById('local-ping-form')?.addEventListener('submit', async e => { e.preventDefault(); const out=document.getElementById('local-ping-output'); out.textContent='Running…'; try { const r=await fetch('/api/tools/ping',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({host:document.getElementById('ping-host').value})}); const d=await r.json(); out.textContent=r.ok ? `${d.host} — ${d.reachable ? 'reachable' : 'no reply'}\n${d.output||''}` : (d.detail||'Request failed'); } catch { out.textContent='Request failed'; } });
+    document.getElementById('local-ports-form')?.addEventListener('submit', async e => { e.preventDefault(); const out=document.getElementById('local-ports-output'); out.textContent='Checking…'; try { const r=await fetch('/api/tools/ports',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({host:document.getElementById('ports-host').value})}); const d=await r.json(); if(!r.ok){out.textContent=d.detail||'Request failed';return;} out.innerHTML='<ul>'+d.results.map(x=>`<li><strong>${x.port}/${safe(x.service)}</strong> — ${safe(x.state)}</li>`).join('')+'</ul>'; } catch { out.textContent='Request failed'; } });
+    document.getElementById('wifi-scan-button')?.addEventListener('click', async () => { const out=document.getElementById('wifi-scan-output'); out.textContent='Reading nearby networks…'; try { const r=await fetch('/api/tools/wifi'); const d=await r.json(); out.textContent=r.ok ? d.output : (d.detail||'Request failed'); } catch { out.textContent='Request failed'; } });
+  }
+
+  if (page === 'device-protection') {
+    const loadDevice = async () => {
+      const status = document.getElementById('device-monitor-status');
+      const list = document.getElementById('device-alerts');
+      try {
+        const r = await fetch('/api/device-status', {cache:'no-store'}); const d = await r.json();
+        if (!d.supported || !d.available) { status.textContent = 'Unavailable'; list.innerHTML = `<div class="empty-state"><strong>Device monitoring unavailable</strong><p>${String(d.message || 'Windows-only feature').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}</p></div>`; return; }
+        document.getElementById('device-av').textContent = d.antivirusEnabled ? 'Enabled' : 'Disabled';
+        document.getElementById('device-rt').textContent = d.realTimeProtectionEnabled ? 'Enabled' : 'Disabled';
+        const alerts = d.alerts || []; document.getElementById('device-alert-count').textContent = alerts.length;
+        status.textContent = alerts.length ? 'Review alerts' : 'Monitoring active';
+        list.innerHTML = alerts.length ? alerts.map(a => `<article class="finding"><div class="finding-top"><span class="severity ${a.severity === 'critical' ? 'critical' : 'high'}">${a.severity.toUpperCase()}</span><h4>${String(a.title).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}</h4></div><p>${String(a.detail).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}</p></article>`).join('') : '<div class="empty-state"><strong>No recent Defender threat alerts returned</strong><p>This does not guarantee the device is malware-free.</p></div>';
+        document.getElementById('device-last-check').textContent = 'Last checked: ' + new Date().toLocaleString();
+        const signature = JSON.stringify(alerts) + String(d.antivirusEnabled) + String(d.realTimeProtectionEnabled);
+        if (window.Notification && Notification.permission === 'granted' && window.__deviceSig && signature !== window.__deviceSig && alerts.length) new Notification('CyberShield AI device alert', {body: alerts[0].title + ': ' + alerts[0].detail});
+        window.__deviceSig = signature;
+      } catch(e) { status.textContent = 'Check failed'; list.innerHTML = '<div class="empty-state"><p>Unable to query local Defender status. Windows PowerShell may be restricted.</p></div>'; }
+    };
+    document.getElementById('refresh-device')?.addEventListener('click', loadDevice);
+    document.getElementById('enable-notifications')?.addEventListener('click', async () => { if (window.Notification) { const p = await Notification.requestPermission(); document.getElementById('device-monitor-status').textContent = p === 'granted' ? 'Notifications enabled' : 'Notifications blocked'; } });
+    loadDevice(); window.setInterval(loadDevice, 30000);
+  }
+})();
+</script>
+<script src="/static/app.js"></script>
+</body></html>
